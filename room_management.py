@@ -1,4 +1,4 @@
-
+# room_management.py
 class Room:
     def __init__(self, room_number, room_type, price):
         self.room_number = room_number
@@ -85,23 +85,30 @@ class HotelSystem:
                 return room
         return None
     
-    def run(self):
+    def run(self, user_role):
         while True:
-            print("\n--- Room Management ---")
+            print(f"\n--- Room Management ({user_role.replace('_', ' ')}) ---")
             print("1. View all rooms")
             print("2. View available rooms")
-            print("3. Update room status")
-            print("4. Return to main menu")
             
-            choice = input("Select option (1-4): ")
+            # Only managers and front desk can update room status
+            if user_role in ['manager', 'front_desk']:
+                print("3. Update room status")
+                print("4. Return to main menu")
+                max_choice = 4
+            else:
+                print("3. Return to main menu")
+                max_choice = 3
+            
+            choice = input(f"Select option (1-{max_choice}): ")
             
             if choice == "1":
                 self.view_all_rooms()
             elif choice == "2":
                 self.view_available_rooms()
-            elif choice == "3":
+            elif choice == "3" and max_choice == 4:
                 self.set_room_status()
-            elif choice == "4":
+            elif choice == str(max_choice):
                 return
             else:
                 print("Invalid choice")
