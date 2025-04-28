@@ -1,4 +1,4 @@
-# test2.py - Guest Registration and Reservation System
+
 import uuid
 from datetime import datetime
 
