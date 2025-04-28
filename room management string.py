@@ -3,6 +3,98 @@ from abc import ABC, abstractmethod
 from typing import List, Dict, Optional
 from datetime import datetime, date, time, timedelta
 
+# ——— Reporting and Analytics —————————————————————————————————————
+
+class ReportGenerator:
+    def __init__(self, hotel_system: 'HotelSystem', all_guests: List['Guest']):
+        self.hotel_system = hotel_system
+        self.all_guests = all_guests
+
+    def generate_guest_demographics(self):
+        demographics = {"Male": 0, "Female": 0, "Other": 0}
+        age_groups = {"<18": 0, "18–30": 0, "31–50": 0, "51+": 0}
+
+        for guest in self.all_guests:
+            gender = guest.gender.strip().capitalize()
+            if gender not in demographics:
+                gender = "Other"
+            demographics[gender] += 1
+
+            age = guest.age
+            if age < 18:
+                age_groups["<18"] += 1
+            elif age <= 30:
+                age_groups["18–30"] += 1
+            elif age <= 50:
+                age_groups["31–50"] += 1
+            else:
+                age_groups["51+"] += 1
+
+        print("\n--- Guest Demographics Report ---")
+        print("Gender Distribution:")
+        for gender, count in demographics.items():
+            print(f"  {gender}: {count}")
+        print("Age Groups:")
+        for group, count in age_groups.items():
+            print(f"  {group}: {count}")
+
+    def generate_occupancy_report(self):
+        total_rooms = len(self.hotel_system.rooms)
+        occupied = sum(1 for room in self.hotel_system.rooms.values() if room.status == RoomStatus.OCCUPIED)
+        available = sum(1 for room in self.hotel_system.rooms.values() if room.status == RoomStatus.AVAILABLE)
+
+        print("\n--- Occupancy Report ---")
+        print(f"Total Rooms: {total_rooms}")
+        print(f"Occupied Rooms: {occupied}")
+        print(f"Available Rooms: {available}")
+        occupancy_rate = (occupied / total_rooms) * 100
+        print(f"Occupancy Rate: {occupancy_rate:.2f}%")
+
+    def generate_revenue_projection(self):
+        # Assume simple flat nightly rates (could be more complex later)
+        rates = {
+            RoomType.STANDARD: 100,
+            RoomType.DELUXE: 150,
+            RoomType.SUITE: 250
+        }
+        projected_revenue = 0
+        for room in self.hotel_system.rooms.values():
+            if room.status == RoomStatus.OCCUPIED:
+                projected_revenue += rates[room.room_type]
+
+        print("\n--- Revenue Projection ---")
+        print(f"Projected Revenue (Current Occupancy): ${projected_revenue:.2f}")
+
+    def generate_full_report(self):
+        self.generate_guest_demographics()
+        self.generate_occupancy_report()
+        self.generate_revenue_projection()
+
+# ——— Analytics Dashboard —————————————————————————————————————
+
+class AnalyticsDashboard:
+    def __init__(self, hotel_system: 'HotelSystem'):
+        self.hotel_system = hotel_system
+
+    def show_realtime_analytics(self):
+        now = datetime.now()
+        check_in_times = [ts for ts, _, _ in self.hotel_system.logs["service"] if "check-in" in _.lower()]
+        check_out_times = [ts for ts, _, _ in self.hotel_system.logs["service"] if "check-out" in _.lower()]
+
+        print("\n--- Real-Time Analytics Dashboard ---")
+        occupied = sum(1 for room in self.hotel_system.rooms.values() if room.status == RoomStatus.OCCUPIED)
+        total = len(self.hotel_system.rooms)
+        print(f"[{now:%Y-%m-%d %H:%M}] Occupancy: {occupied}/{total} rooms")
+
+        # Simple trend visualization (count of check-ins/outs today)
+        today = date.today()
+        check_ins_today = sum(1 for ts in check_in_times if ts.date() == today)
+        check_outs_today = sum(1 for ts in check_out_times if ts.date() == today)
+
+        print(f"Check-ins today: {check_ins_today}")
+        print(f"Check-outs today: {check_outs_today}")
+
+
 # ——— Domain Enums ———————————————————————————————————————————————
 
 class RoomType(Enum):
